@@ -14,6 +14,11 @@ We all have areas in life where we’re uncertain, overwhelmed, or simply cluele
 
 ---
 
+## sample implementation
+You can use Miro, or any whiteboard physical or otherwise.
+Here's a sample implementation that's very basic but works.
+![wtfcircles](wtf.png)
+
 ## How It Works
 
 WTF Circles features three concentric circles that represent different levels of clarity:
