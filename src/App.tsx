@@ -7,14 +7,10 @@ import './index.css'; // Import global styles
 function App() {
   return (
     <DndProvider backend={HTML5Backend}>
-      {/* Use className from index.css for flex layout */}
+      {/* Revert to simpler structure */}
       <div className="App">
-        {/* Header */}
-        <h1 style={{ textAlign: 'center', padding: '15px 0', flexShrink: 0 /* Prevent header from shrinking */ }}>WTF Circles Whiteboard</h1>
-        {/* Main content area - make WhiteboardCanvas grow */}
-        <div style={{ flexGrow: 1, overflow: 'hidden' /* Prevent overflow issues */ }}>
-           <WhiteboardCanvas />
-        </div>
+        <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>WTF Circles Whiteboard</h1>
+        <WhiteboardCanvas />
       </div>
     </DndProvider>
   );
