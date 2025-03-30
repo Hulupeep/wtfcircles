@@ -4,6 +4,8 @@ Break down unknowns and bring clarity
 
 WTF Circles is an interactive whiteboard tool and process designed to help you and your teams capture the things you’re truly clueless about—and then start a process of bringing clarity step by step. Whether you're planning a project, navigating personal relationships, or simply sorting through ideas, this tool gives you a visual method to move from confusion to understanding.
 
+It can be compared to a trello board, but a trello board assumes you have a a clue :) This starts from WTF??? IS THIS THING
+
 ---
 
 ## Problem Statement
