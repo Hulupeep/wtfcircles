@@ -1,16 +1,54 @@
 # WTF Circles
 
-Break down unknowns and bring clarity
+*A clarity tool for when you're totally, utterly clueless.*
+---
 
-WTF Circles is an interactive whiteboard tool and process designed to help you and your teams capture the things you’re truly clueless about—and then start a process of bringing clarity step by step. Whether you're planning a project, navigating personal relationships, or simply sorting through ideas, this tool gives you a visual method to move from confusion to understanding.
+## **Most Things We Haven’t Really Looked At**
 
-It can be compared to a trello board, but a trello board assumes you have a a clue :) This starts from WTF??? IS THIS THING
+We go through life labeling things:  
+“This is a project.”  
+“This is a problem.”  
+“This is a goal I have.”
+
+But most of the time, those labels are just placeholders for *things we haven’t examined deeply.*
+
+We *think* we know what something is—  
+but really, we’re standing on layers of vague assumptions.
+
+> You’re not stuck because it’s hard.  
+> You’re stuck because you haven’t figured out what it even is.
+
+WTF Circles exists to bring that moment forward.  
+To **create a space where you admit you don’t know what you’re looking at yet**.  
+That’s the shift.
+
+From "I'm overwhelmed and frozen,"  
+to: "Okay… what even *is* this?"
+
+Once you’ve named that, you can start breaking it down.  
+Not into solutions.  
+Into **understandings**.  
+Into **first principles**.  
+Into the first honest, doable action that moves you *toward* clarity.
+
+It’s not about pretending to know.  
+It’s about finally admitting that you don’t.  
+And building from there.
+
+That’s not weakness.  
+That’s how all clarity starts.
+
+---
+
+WTF Circles is a first principles approach to breaking down what we are not clear about. It is an interactive whiteboard tool and process designed to help you and your teams capture the things you’re truly clueless about—and then start a process of bringing clarity step by step. Whether you're planning a project, navigating personal relationships, or simply sorting through ideas, this tool gives you a visual method to move from confusion to understanding. It's not project management, it's more first principles. It's about asking why. 
+
+WTF Circles *can* be compared to a trello board, but a trello board assumes you have a a clue :) This starts from WTF??? IS THIS THING
 
 ---
 
 ## Problem Statement
 
-We all have areas in life where we’re uncertain, overwhelmed, or simply clueless about what’s important. Traditional organization tools often force a linear approach, which can stifle creativity and ignore the messy process of gaining insight. WTF Circles solves this by letting you capture raw, unclear ideas and then, through actionable steps, gradually refine them into clear, confident thoughts. It’s a system that works not just for work or creativity but for any aspect of life—from planning projects to resolving personal dilemmas.
+We all have areas in life where we’re uncertain, overwhelmed, or simply clueless about what’s important. Traditional organization tools are often uncomfortable with uncertainty and jump straight to workshops and project management in   a linear approach, which can bury assumptions deep before anyone realizes.  WTF Circles solves this by letting you capture raw, unclear ideas and then, through actionable steps, gradually refine them into clear, confident thoughts. It’s a system that works not just for work or creativity but for any aspect of life—from planning projects to resolving personal dilemmas.
 
 ---
 
@@ -25,15 +63,17 @@ WTF Circles features three concentric circles that represent different levels of
 
 - **Outer Circle (WWTF):**  
 Aka "Wait, wait WHAT THE KFC IS THIS!!!!!!"
-  This is where your raw, unrefined ideas live—those things you’re completely clueless about. They start off with a cool blue background and a question mark icon.
+  This is where those things you’re completely clueless about live. It could be your own idea or project, a project handed to you, or a situation you are in.  They start off with a cool blue background and a question mark icon.
+These things are:
 Unknown unknowns
-Completely clueless
+Completely clueless things
 No idea where to start or what even this is.
-I know what is is but absolutely no clue where to start - at all. 
+I know what is is but absolutely no clue where to start - at all.
+Just honestly lost, and prepared to admit it. 
 
 ### What you do with WWTF 
-Brainstorm on these
-Click on them to add next DOABLE actions to bring clarity. Rememebr you are not doing a task you are just trying to get a bleeding clue as to what this is. It could be a task but the goal is the firt thing that can help unlock.
+Brainstorm on these. Do 5 whys. Stare at them. keep asking 'What the f**k is this??'
+Click on them to add next DOABLE actions to bring clarity. Remember you are not doing a task you are just trying to get a bleeding clue as to what this is. It could be a task but the goal is the firt thing that can help unlock.
 
 - **Middle Circle (WTF):**  
   As you add next actionable steps to a WWTF sticky note, to start getting to clarity (but still clueless0 it moves here. This zone represents ideas that are in the process of becoming clear. The note’s style updates (e.g., turns orange with a “WTF” label) to reflect progress.
