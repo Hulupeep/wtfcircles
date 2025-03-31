@@ -1,4 +1,4 @@
-import React from 'react';
+// Removed unused React import
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css'; // Ensure global styles are imported

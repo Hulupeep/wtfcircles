@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import WhiteboardCanvas from './components/WhiteboardCanvas';
-import { supabase, Board as SupabaseBoardData } from './utils/supabaseClient'; // Import supabase client and type
+import { supabase } from './utils/supabaseClient'; // Import supabase client - Removed SupabaseBoardData
 import { Session, User } from '@supabase/supabase-js'; // Import Session type
 import './index.css'; // Import global styles
 
@@ -121,7 +121,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
 // --- App Component ---
 function App() {
   // Auth State
-  const [session, setSession] = useState<Session | null>(null);
+  // const [session, setSession] = useState<Session | null>(null); // Removed unused session state
   const [user, setUser] = useState<User | null>(null); // Store user separately
   const [loading, setLoading] = useState(true); // Loading initial session/data
   const [authLoading, setAuthLoading] = useState(false); // Specific loading for auth actions
@@ -141,7 +141,7 @@ function App() {
     setLoading(true);
     // Check initial session state
     supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
+        // setSession(session); // Removed call to setSession
         const initialUser = session?.user ?? null;
         setUser(initialUser);
         console.log("Initial session check:", session);
@@ -164,7 +164,7 @@ function App() {
         const currentUser = session?.user ?? null;
         const previousUser = user; // Capture previous user state before updating
 
-        setSession(session);
+        // setSession(session); // Removed call to setSession
         setUser(currentUser);
         setError(null); // Clear errors on auth change
 
@@ -407,8 +407,8 @@ function App() {
            {migrationLoading && !showAuthModal && (
                 <p className="text-blue-500 text-sm mb-2 text-center">Merging local boards...</p>
            )}
-          {/* Pass user ID. WhiteboardCanvas determines its own offline status */}
-          <WhiteboardCanvas userId={user?.id} isOffline={!user} />
+          {/* Pass user ID. WhiteboardCanvas now determines offline status based on userId */}
+          <WhiteboardCanvas userId={user?.id} />
         </div>
       </div>
     </DndProvider>

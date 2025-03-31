@@ -28,7 +28,8 @@ const StickyNote: React.FC<StickyNoteProps> = ({ id, text, zone, onDoubleClick, 
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    end: (item: DragItem | undefined, monitor: DragSourceMonitor<DragItem, unknown>) => {
+    // Removed unused 'item' parameter from end handler
+    end: (_item: DragItem | undefined, monitor: DragSourceMonitor<DragItem, unknown>) => {
       const didDrop = monitor.didDrop();
       console.log(`[Drag End] Note ID: ${id}, Dropped: ${didDrop}`);
       if (!didDrop) {

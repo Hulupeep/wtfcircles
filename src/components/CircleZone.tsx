@@ -27,9 +27,10 @@ const CircleZone: React.FC<CircleZoneProps> = ({ zoneId, onDropNote, children })
       console.log(`[Drop] Note ID: ${item.id} dropped on Zone: ${zoneId}`);
       onDropNote(item.id, zoneId);
     },
-    hover: (item: DragItem, monitor: DropTargetMonitor<DragItem, unknown>) => {
+    // Removed unused 'item' parameter from hover handler
+    hover: (_item: DragItem, monitor: DropTargetMonitor<DragItem, unknown>) => {
       if (monitor.isOver({ shallow: true })) {
-        // console.log(`[Hover] Note ID: ${item.id} hovering over Zone: ${zoneId}`);
+        // console.log(`[Hover] Note ID: ${_item.id} hovering over Zone: ${zoneId}`); // Use _item if needed
       }
     },
     collect: (monitor: DropTargetMonitor<DragItem, unknown>) => ({
