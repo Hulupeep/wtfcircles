@@ -53,8 +53,8 @@ We all have areas in life where we’re uncertain, overwhelmed, or simply cluele
 ---
 
 ## sample implementation
-You can use Miro, or any whiteboard physical or otherwise.
-Here's a sample implementation that's very basic but works.
+You can use Miro, or any whiteboard physical or otherwise. 
+Here's a sample implementation that's very basic but works. [https://wtfcircles.vercel.app/](https://wtfcircles.vercel.app/)
 ![wtfcircles](wtf.png)
 
 ## How It Works
