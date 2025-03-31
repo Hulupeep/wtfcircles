@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import WhiteboardCanvas from './components/WhiteboardCanvas';
-import { supabase } from './utils/supabaseClient'; // Import supabase client - Removed SupabaseBoardData
-import { Session, User } from '@supabase/supabase-js'; // Import Session type
+import { supabase } from './utils/supabaseClient'; // Import supabase client
+import { User } from '@supabase/supabase-js'; // Import User type - Removed Session
 import './index.css'; // Import global styles
 
 // Type for data stored in local storage
