@@ -28,15 +28,17 @@ export function ShareBoardDialog({ open, onOpenChange, boardId }: ShareBoardDial
   const [copied, setCopied] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [shareUrl, setShareUrl] = useState("") // Add state for the URL
 
-  const shareUrl = `${window.location.origin}/board/share/${boardId}`
-
-  // Fetch the current sharing status when the dialog opens
+  // Fetch status and set URL when dialog opens or boardId changes
   useEffect(() => {
+    // Set the share URL only on the client-side
+    setShareUrl(`${window.location.origin}/board/share/${boardId}`)
+
     if (open && boardId) {
       fetchSharingStatus()
     }
-  }, [open, boardId])
+  }, [open, boardId]) // boardId dependency ensures URL updates if it changes
 
   const fetchSharingStatus = async () => {
     if (!boardId) return

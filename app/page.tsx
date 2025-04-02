@@ -11,6 +11,7 @@ import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LogOut, Plus, Share2, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRealtimeSync } from "@/hooks/use-realtime-sync"
@@ -50,12 +51,12 @@ export default function Home() {
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null)
   const [noteInput, setNoteInput] = useState("")
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null) // State for new note highlight
   const [isLoading, setIsLoading] = useState(true)
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [isCreateBoardDialogOpen, setIsCreateBoardDialogOpen] = useState(false)
   const [isGuest, setIsGuest] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-
   // Set up real-time sync
   const { isSyncing, error: syncError } = useRealtimeSync(activeBoardId || "", notes, setNotes)
 
@@ -128,12 +129,20 @@ export default function Home() {
         isShared: board.shared,
       }))
 
-      const formattedSharedBoards = sharedWithUser.map((item) => ({
-        id: item.boards.id,
-        title: item.boards.title,
-        isShared: true,
-        ownerId: item.boards.user_id,
-      }))
+      const formattedSharedBoards = sharedWithUser
+        .map((item) => {
+          // Ensure item.boards is treated as a single object and exists
+          const boardData = Array.isArray(item.boards) ? item.boards[0] : item.boards
+          if (!boardData) return null // Skip if board data is missing
+
+          return {
+            id: boardData.id,
+            title: boardData.title,
+            isShared: true,
+            ownerId: boardData.user_id,
+          }
+        })
+        .filter(board => board !== null) // Filter out any null entries
 
       setMyBoards(formattedOwnedBoards)
       setSharedBoards(formattedSharedBoards)
@@ -142,7 +151,7 @@ export default function Home() {
       if (formattedOwnedBoards.length > 0) {
         setActiveBoardId(formattedOwnedBoards[0].id)
         await fetchBoardData(formattedOwnedBoards[0].id)
-      } else if (formattedSharedBoards.length > 0) {
+      } else if (formattedSharedBoards.length > 0 && formattedSharedBoards[0]) {
         setActiveBoardId(formattedSharedBoards[0].id)
         await fetchBoardData(formattedSharedBoards[0].id)
       } else {
@@ -289,6 +298,10 @@ export default function Home() {
     const updatedNotes = [...notes, newNote]
     setNotes(updatedNotes)
     setNoteInput("")
+    // Highlight the new note if added to the default 'wwtf' zone
+    if (newNote.zone === "wwtf") {
+      setHighlightedNoteId(newNote.id)
+    }
 
     // If we have an active board and we're not in demo mode, update in database
     if (activeBoardId && userId) {
@@ -670,35 +683,80 @@ export default function Home() {
         <ResizablePanelGroup direction="horizontal" className="min-h-[600px] rounded-lg border">
           <ResizablePanel defaultSize={80} minSize={50}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 h-full bg-muted/30">
-              <CircleZone title="WWTF" onDropNote={handleMoveNote}>
-                <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
-                  {notes
-                    .filter((note) => note.zone === "wwtf")
-                    .map((note) => (
-                      <StickyNote key={note.id} note={note} onDoubleClick={handleNoteDoubleClick} />
-                    ))}
-                </div>
-              </CircleZone>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleZone title="Oh, WTF?!" onDropNote={handleMoveNote}>
+                      <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
+                        {notes
+                          .filter((note) => note.zone === "wwtf")
+                          .map((note) => (
+                            <StickyNote
+                              key={note.id}
+                              note={note}
+                              onDoubleClick={handleNoteDoubleClick}
+                              isHighlighted={note.id === highlightedNoteId}
+                              clearHighlight={() => setHighlightedNoteId(null)}
+                            />
+                          ))}
+                      </div>
+                    </CircleZone>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>No idea. Clueless. Barely able to articulate it. Livin’ with the lie. Start here.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              <CircleZone title="WTF" onDropNote={handleMoveNote}>
-                <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
-                  {notes
-                    .filter((note) => note.zone === "wtf")
-                    .map((note) => (
-                      <StickyNote key={note.id} note={note} onDoubleClick={handleNoteDoubleClick} />
-                    ))}
-                </div>
-              </CircleZone>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleZone title="Hmm, WTF…" onDropNote={handleMoveNote}>
+                      <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
+                        {notes
+                          .filter((note) => note.zone === "wtf")
+                          .map((note) => (
+                            <StickyNote
+                              key={note.id}
+                              note={note}
+                              onDoubleClick={handleNoteDoubleClick}
+                              isHighlighted={false} // Only highlight in wwtf
+                              clearHighlight={() => {}} // No highlight clear needed here
+                            />
+                          ))}
+                      </div>
+                    </CircleZone>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>You’re in the fog. You’ve taken some steps, but it’s not quite clear yet.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-              <CircleZone title="CLARITY" onDropNote={handleMoveNote}>
-                <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
-                  {notes
-                    .filter((note) => note.zone === "clarity")
-                    .map((note) => (
-                      <StickyNote key={note.id} note={note} onDoubleClick={handleNoteDoubleClick} />
-                    ))}
-                </div>
-              </CircleZone>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CircleZone title="Ah, got it!" onDropNote={handleMoveNote}>
+                      <div className="flex flex-wrap gap-2 p-2 min-h-[200px]">
+                        {notes
+                          .filter((note) => note.zone === "clarity")
+                          .map((note) => (
+                            <StickyNote
+                              key={note.id}
+                              note={note}
+                              onDoubleClick={handleNoteDoubleClick}
+                              isHighlighted={false} // Only highlight in wwtf
+                              clearHighlight={() => {}} // No highlight clear needed here
+                            />
+                          ))}
+                      </div>
+                    </CircleZone>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Clear, confident, and ready to move forward. You know what to do next.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </ResizablePanel>
 

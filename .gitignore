@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Next.js build output
+.next/
+
+# Environment variables
+.env.local
+.env.*.local
+
+# Supabase
+.supabase/
+.supabase/**
+
+# OS and misc
+*.DS_Store
+*.env
+*.sqlite
+
+# Optional if you're using pnpm
+.pnpm-debug.log*
