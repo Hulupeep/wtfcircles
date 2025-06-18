@@ -4,15 +4,10 @@ import type React from "react"
 
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-interface Note {
-  id: string
-  text: string
-  zone: "wwtf" | "wtf" | "clarity"
-  nextActions: Array<{ id: string; text: string; completed: boolean }>
-}
+import { Note } from "@/lib/types"
+import { Button } from "@/components/ui/button"
 
 interface StickyNoteProps {
   note: Note
@@ -31,6 +26,12 @@ export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
     setIsDragging(false)
   }
 
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onDoubleClick(note.id)
+  }
+
   const getZoneColor = () => {
     switch (note.zone) {
       case "wwtf":
@@ -44,6 +45,8 @@ export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
     }
   }
 
+
+
   return (
     <Card
       className={cn(
@@ -55,15 +58,26 @@ export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDoubleClick={() => onDoubleClick(note.id)}
     >
       <CardContent className="p-3 text-sm">
-        <div className="flex items-start gap-1">
-          {note.nextActions.length > 0 && <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
-          <p>{note.text}</p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-1 flex-1">
+            {note.nextActions.length > 0 && <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
+            <p className="text-gray-800 leading-relaxed">{note.text}</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 shrink-0"
+            onClick={handleSettingsClick}
+          >
+            <Settings className="h-3 w-3" />
+          </Button>
         </div>
       </CardContent>
     </Card>
   )
 }
+
+export default StickyNote
 
