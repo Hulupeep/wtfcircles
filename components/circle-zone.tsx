@@ -12,7 +12,18 @@ interface CircleZoneProps {
 }
 
 export function CircleZone({ title, children, onDropNote }: CircleZoneProps) {
-  const zone = title.toLowerCase() as "wwtf" | "wtf" | "clarity"
+  // Correctly map display title back to internal zone ID
+  const getZoneId = (displayTitle: string): "wwtf" | "wtf" | "clarity" => {
+    switch (displayTitle) {
+      case "Oh, WTF?!": return "wwtf";
+      case "Hmm, WTF…": return "wtf";
+      case "Ah, got it!": return "clarity";
+      default:
+        console.warn(`Unknown CircleZone title: ${displayTitle}, defaulting to wwtf`);
+        return "wwtf"; // Fallback, though should ideally not happen
+    }
+  }
+  const zone = getZoneId(title);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
