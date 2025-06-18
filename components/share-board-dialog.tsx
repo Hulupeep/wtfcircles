@@ -29,7 +29,7 @@ export function ShareBoardDialog({ open, onOpenChange, boardId }: ShareBoardDial
   const [isPublic, setIsPublic] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const shareUrl = `${window.location.origin}/board/share/${boardId}`
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/board/share/${boardId}` : ''
 
   // Fetch the current sharing status when the dialog opens
   useEffect(() => {
