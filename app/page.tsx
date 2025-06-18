@@ -230,6 +230,9 @@ export default function Home() {
   // Check if we're viewing a shared board as a guest
   useEffect(() => {
     async function checkSharedBoard() {
+      // Check if window is available (client-side)
+      if (typeof window === 'undefined') return
+      
       // This would check the URL path to see if we're on a shared board link
       const path = window.location.pathname
       if (path.includes("/board/share/")) {
@@ -579,7 +582,9 @@ export default function Home() {
                     size="sm"
                     onClick={async () => {
                       await supabase.auth.signOut()
-                      window.location.reload()
+                      if (typeof window !== 'undefined') {
+                        window.location.reload()
+                      }
                     }}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -730,4 +735,7 @@ export default function Home() {
     </div>
   )
 }
+
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
 
