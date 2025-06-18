@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react" // Removed useRef
 import { CircleZone } from "@/components/circle-zone"
 import { StickyNote } from "@/components/sticky-note"
 import { NextActionsDialog } from "@/components/next-actions-dialog"
@@ -57,8 +57,13 @@ export default function Home() {
   const [isCreateBoardDialogOpen, setIsCreateBoardDialogOpen] = useState(false)
   const [isGuest, setIsGuest] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-  // Set up real-time sync
-  const { isSyncing, error: syncError } = useRealtimeSync(activeBoardId || "", notes, setNotes)
+  // Ref to store the timestamp of the last update initiated by this client
+  // Removed lastUpdateTimeRef
+  // Set up real-time sync (pass lifted state)
+  // Pass movingNoteId to the hook
+  // Hook signature will be updated (removing movingNoteId)
+  // Updated hook call signature
+  const { error: syncError } = useRealtimeSync(activeBoardId || "", notes, setNotes)
 
   // Combine all boards for the dropdown
   const allBoards = [...myBoards, ...sharedBoards]
@@ -310,11 +315,12 @@ export default function Home() {
           .from("boards")
           .update({
             content: updatedNotes,
-            updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(), // Standard timestamp
           })
           .eq("id", activeBoardId)
 
         if (error) throw error
+        // No ref to update
       } catch (error) {
         console.error("Error adding note:", error)
         toast({
@@ -327,12 +333,13 @@ export default function Home() {
   }
 
   const handleMoveNote = async (noteId: string, targetZone: Zone) => {
-    // Update local state
+    // 1. Calculate the new state
     const updatedNotes = notes.map((note) => (note.id === noteId ? { ...note, zone: targetZone } : note))
 
-    setNotes(updatedNotes)
+    // 2. Update local state immediately (Optimistic Update) - Works for demo mode too
+    setNotes(updatedNotes);
 
-    // If we have an active board and we're not in demo mode, update in database
+    // 3. If NOT in demo mode, update the database
     if (activeBoardId && userId) {
       try {
         const { error } = await supabase
@@ -342,16 +349,31 @@ export default function Home() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", activeBoardId)
+          .select() // Ensure the update operation completes? Might not be needed for just update.
 
-        if (error) throw error
+        if (error) {
+           console.error("Error moving note in DB:", error);
+           // Optionally revert optimistic update here if DB fails
+           // Example: fetchBoardData(activeBoardId);
+           toast({
+             title: "Sync Error",
+             description: "Failed to save note position to database.",
+             variant: "destructive",
+           })
+           // Re-throw or handle as needed
+        }
       } catch (error) {
-        console.error("Error moving note:", error)
+        // Catch any unexpected errors during the DB operation
+        console.error("Unexpected error moving note:", error)
         toast({
           title: "Error",
-          description: "Failed to update note position",
+          description: "An unexpected error occurred while moving the note.",
           variant: "destructive",
         })
       }
+    } else {
+       // Log if in demo mode (optional)
+       // console.log(`[handleMoveNote] Demo mode: Local move for note ${noteId} to ${targetZone}`);
     }
   }
 
@@ -384,11 +406,12 @@ export default function Home() {
           .from("boards")
           .update({
             content: updatedNotes,
-            updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(), // Standard timestamp
           })
           .eq("id", activeBoardId)
 
         if (error) throw error
+        // No ref to update
       } catch (error) {
         console.error("Error adding action:", error)
         toast({
@@ -422,11 +445,12 @@ export default function Home() {
           .from("boards")
           .update({
             content: updatedNotes,
-            updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(), // Standard timestamp
           })
           .eq("id", activeBoardId)
 
         if (error) throw error
+        // No ref to update
       } catch (error) {
         console.error("Error toggling action:", error)
         toast({

@@ -21,6 +21,7 @@ interface StickyNoteProps {
 }
 
 export function StickyNote({ note, onDoubleClick, isHighlighted, clearHighlight }: StickyNoteProps) {
+  // console.log(`[StickyNote] Rendering note ID: ${note.id}, Zone: ${note.zone}`); // Removed log
   const [isDragging, setIsDragging] = useState(false)
   const [showClickMePrompt, setShowClickMePrompt] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)

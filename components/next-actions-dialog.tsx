@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Plus, MessageSquareQuote, ChevronRight, ChevronDown } from "lucide-react" // Added icons
+import { Plus, MessageSquareQuote, ChevronRight, ChevronDown, Save, X, Lightbulb } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface Note {
   id: string
@@ -40,8 +41,9 @@ const firstPrinciplesQuestions = [
 export function NextActionsDialog({ note, onClose, onAddAction, onToggleAction }: NextActionsDialogProps) {
   const [newActionText, setNewActionText] = useState("")
   const [currentQuestion, setCurrentQuestion] = useState("")
-  const [showFiveWhys, setShowFiveWhys] = useState(false)
+  const [isFiveWhysExpanded, setIsFiveWhysExpanded] = useState(false)
   const [fiveWhysAnswers, setFiveWhysAnswers] = useState<string[]>(Array(5).fill(""))
+  // TODO: Consider loading/saving fiveWhysAnswers from/to the note object if persistence is needed
 
   // Select a random question when the dialog opens for a specific note
   useEffect(() => {
@@ -59,75 +61,26 @@ export function NextActionsDialog({ note, onClose, onAddAction, onToggleAction }
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Next Actions for Note</DialogTitle>
+          {/* ✅ 1. Panel Title */}
+          <DialogTitle>Let’s move this toward clarity.</DialogTitle>
         </DialogHeader>
 
         <div className="p-4 bg-muted/30 rounded-md mb-4">
           <p>{note.text}</p>
         </div>
 
-        {/* --- First Principles Question --- */}
-        <div className="mb-4 p-3 border border-dashed rounded-md bg-blue-50 text-blue-800">
-          <div className="flex items-center gap-2 font-medium">
-            <MessageSquareQuote className="h-4 w-4" />
-            <span>First Principles Prompt:</span>
-          </div>
-          <p className="mt-1 italic">{currentQuestion}</p>
-        </div>
-        {/* --------------------------------- */}
- 
-        {/* --- 5 Whys Trigger --- */}
-        <Button variant="link" onClick={() => setShowFiveWhys(!showFiveWhys)} className="p-0 h-auto text-sm text-muted-foreground hover:text-foreground">
-          {showFiveWhys ? <ChevronDown className="h-4 w-4 mr-1" /> : <ChevronRight className="h-4 w-4 mr-1" />}
-          Try the 5 Whys
-        </Button>
-        {/* ---------------------- */}
- 
-        {/* --- 5 Whys Panel --- */}
-        {showFiveWhys && (
-          <div className="mt-2 mb-4 p-4 border rounded-md bg-background space-y-3">
-            <p className="text-sm text-muted-foreground italic">
-              “Each 'Why' digs into the reason above it. Don’t overthink—just be honest.”
-            </p>
-            {[...Array(5)].map((_, index) => {
-              const prevAnswer = index === 0 ? note.text : fiveWhysAnswers[index - 1]
-              const placeholderText = index === 0 ? `Why ${note.text}?` : `Why ${prevAnswer || "(previous answer)"}?`
-              return (
-                <div key={index} className="space-y-1">
-                  <Label htmlFor={`why-${index + 1}`} className="text-xs font-medium">
-                    {index + 1}. Why {index > 0 ? `(${index})` : `(${note.text.substring(0, 20)}...)` }?
-                  </Label>
-                  <Input
-                    id={`why-${index + 1}`}
-                    value={fiveWhysAnswers[index]}
-                    onChange={(e) => {
-                      const newAnswers = [...fiveWhysAnswers]
-                      newAnswers[index] = e.target.value
-                      setFiveWhysAnswers(newAnswers)
-                    }}
-                    placeholder={placeholderText}
-                    className="text-sm"
-                  />
-                </div>
-              )
-            })}
-          </div>
-        )}
-        {/* -------------------- */}
- 
-        {/* --- Next Actions Section --- */}
-        <h3 className="text-md font-semibold mt-4 mb-2">Next Actions</h3>
-        <div className="space-y-4">
-        </div>
-        {/* --------------------------------- */}
-
-        <div className="space-y-4">
+        {/* ✅ 2. Primary Action Prompt (Top of Panel) */}
+        <div className="mb-4">
+          <Label htmlFor="next-action-input" className="block text-md font-semibold mb-2">
+            What’s one thing you can do next to move this forward?
+          </Label>
           <div className="flex items-center gap-2">
             <Input
+              id="next-action-input"
               value={newActionText}
               onChange={(e) => setNewActionText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddAction()}
-              placeholder="Add a next action..."
+              placeholder="Add a next step..."
               className="flex-1"
             />
             <Button onClick={handleAddAction} disabled={newActionText.trim() === ""}>
@@ -135,28 +88,124 @@ export function NextActionsDialog({ note, onClose, onAddAction, onToggleAction }
               Add
             </Button>
           </div>
-
-          <div className="space-y-2">
-            {note.nextActions.length > 0 ? (
-              note.nextActions.map((action) => (
-                <div key={action.id} className="flex items-center gap-2 p-2 rounded-md bg-background">
-                  <Checkbox
-                    id={action.id}
-                    checked={action.completed}
-                    onCheckedChange={() => onToggleAction(note.id, action.id)}
-                  />
-                  <Label htmlFor={action.id} className={action.completed ? "line-through text-muted-foreground" : ""}>
-                    {action.text}
-                  </Label>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No actions yet. Add one above.</p>
-            )}
-          </div>
         </div>
 
-        <DialogFooter>
+        {/* Existing Actions List */}
+        <div className="space-y-2 mb-6 max-h-40 overflow-y-auto pr-2">
+          {note.nextActions.length > 0 ? (
+            note.nextActions.map((action) => (
+              <div key={action.id} className="flex items-center gap-2 p-2 rounded-md bg-background">
+                <Checkbox
+                  id={action.id}
+                  checked={action.completed}
+                  onCheckedChange={() => onToggleAction(note.id, action.id)}
+                />
+                <Label htmlFor={action.id} className={cn("flex-1", action.completed ? "line-through text-muted-foreground" : "")}>
+                  {action.text}
+                </Label>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-2">No actions added yet.</p>
+          )}
+        </div>
+
+        {/* Divider */}
+        <hr className="my-6" />
+
+        {/* ✅ 3. First Principles Insight Prompt */}
+        <div className="mb-4 p-3 rounded-md bg-blue-50 border border-blue-100">
+          <div className="flex items-center gap-2 font-semibold text-blue-800 mb-1 text-sm">
+            <MessageSquareQuote className="h-4 w-4" />
+            <span>Thought Starter:</span>
+          </div>
+          <p className="italic text-blue-700 text-sm">→ {currentQuestion}</p>
+        </div>
+
+        {/* ✅ 4. 5 Whys Expandable Panel */}
+        <div className="border rounded-md overflow-hidden">
+          {/* Trigger */}
+          <button
+            onClick={() => setIsFiveWhysExpanded(!isFiveWhysExpanded)}
+            className="flex items-center justify-between w-full p-3 text-left bg-muted/50 hover:bg-muted/80 transition-colors"
+          >
+            <span className="font-medium text-sm flex items-center gap-2">
+              🌀 Go deeper with the 5 Whys
+            </span>
+            {isFiveWhysExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
+
+          {/* Content (Conditional) */}
+          {isFiveWhysExpanded && (
+            <div className="p-4 border-t bg-background space-y-3">
+              {[...Array(5)].map((_, index) => {
+                const placeholderText =
+                  index === 0
+                    ? `Why is this bothering you?`
+                    : `Why is that true? (${fiveWhysAnswers[index - 1]?.substring(0, 30) || "prev answer"}...)`
+                const labelText =
+                  index === 0
+                    ? `Why is this bothering you?`
+                    : index === 1
+                      ? `Why is that true?`
+                      : index === 2
+                        ? `Why do you think that happens?`
+                        : index === 3
+                          ? `Why might that be a pattern?`
+                          : `Why does that feel like the truth?`
+
+                return (
+                  <div key={index} className="space-y-1">
+                    <Label htmlFor={`why-${index + 1}`} className="text-xs font-medium">
+                      {index + 1}. {labelText}
+                    </Label>
+                    <Input
+                      id={`why-${index + 1}`}
+                      value={fiveWhysAnswers[index]}
+                      onChange={(e) => {
+                        const newAnswers = [...fiveWhysAnswers]
+                        newAnswers[index] = e.target.value
+                        setFiveWhysAnswers(newAnswers)
+                      }}
+                      placeholder={placeholderText}
+                      className="text-sm"
+                    />
+                  </div>
+                )
+              })}
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs text-yellow-800 flex items-start gap-1.5">
+                <Lightbulb className="h-3 w-3 mt-0.5 shrink-0" />
+                <span>💡 Often the 5th Why is where your clarity is hiding.</span>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Optionally reset answers on cancel?
+                    // setFiveWhysAnswers(Array(5).fill(""));
+                    setIsFiveWhysExpanded(false)
+                  }}
+                >
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log("Saving 5 Whys for note:", note.id, fiveWhysAnswers)
+                    // TODO: Implement actual saving logic
+                    setIsFiveWhysExpanded(false) // Collapse after save
+                  }}
+                >
+                  <Save className="h-4 w-4 mr-1" /> Save
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+
+        <DialogFooter className="mt-6 pt-4 border-t">
           <Button onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>

@@ -10,12 +10,19 @@ interface Note {
   nextActions: Array<{ id: string; text: string; completed: boolean }>
 }
 
-export function useRealtimeSync(boardId: string, notes: Note[], setNotes: (notes: Note[]) => void) {
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date())
+export function useRealtimeSync(
+  boardId: string,
+  notes: Note[], // Keep notes for debounced save
+  setNotes: (notes: Note[]) => void,
+  // lastUpdateTimeRef removed
+) {
+  // State for debounced save
   const [isSyncing, setIsSyncing] = useState(false)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date()) // Keep for debounced save logic
   const [error, setError] = useState<string | null>(null)
 
   // Subscribe to real-time changes
+  // Effect for setting up the Supabase subscription
   useEffect(() => {
     // Only subscribe if we have a boardId and it's not a demo board
     if (!boardId || boardId.startsWith("demo-")) return
@@ -36,7 +43,7 @@ export function useRealtimeSync(boardId: string, notes: Note[], setNotes: (notes
         // Subscribe to changes on the boards table for this specific board
         const subscription = supabase
           .channel(`board-${boardId}`)
-          .on(
+          .on( // Listener for Database Changes
             "postgres_changes",
             {
               event: "UPDATE",
@@ -45,14 +52,12 @@ export function useRealtimeSync(boardId: string, notes: Note[], setNotes: (notes
               filter: `id=eq.${boardId}`,
             },
             (payload) => {
-              // Only update if we're not the ones who made the change
-              const updatedAt = new Date(payload.new.updated_at)
-              if (updatedAt > lastSyncedAt && !isSyncing) {
-                // Extract the notes from the content field
-                const updatedNotes = payload.new.content || []
-                setNotes(updatedNotes)
-              }
-            },
+              // --- SIMPLIFIED: Always apply the update ---
+              const incomingNotes = payload.new.content || []
+              // console.log("[RealtimeSync] Received DB update event, applying state."); // Removed log
+              setNotes(incomingNotes)
+              // --- End Simplified ---
+            }
           )
           .subscribe((status) => {
             if (status === "CHANNEL_ERROR") {
@@ -70,24 +75,26 @@ export function useRealtimeSync(boardId: string, notes: Note[], setNotes: (notes
     }
 
     checkAuthAndSubscribe()
-  }, [boardId, lastSyncedAt, isSyncing, setNotes])
+  // Re-subscribe ONLY when boardId changes.
+  }, [boardId, setNotes]) // Simplified dependencies
 
-  // Function to save changes to the database
+  // Function to save changes for debounced updates
   const saveChanges = async () => {
     // Only save if we have a boardId and it's not a demo board
     if (!boardId || boardId.startsWith("demo-") || notes.length === 0) return
+
+    // No need to check movingNoteId here, debounced effect handles timing
 
     setIsSyncing(true)
     setError(null)
 
     try {
       const now = new Date()
-
-      // Update the board content
+      console.log("Debounced save running...");
       const { error } = await supabase
         .from("boards")
         .update({
-          content: notes,
+          content: notes, // Use notes state passed into the hook
           updated_at: now.toISOString(),
         })
         .eq("id", boardId)
@@ -95,26 +102,32 @@ export function useRealtimeSync(boardId: string, notes: Note[], setNotes: (notes
       if (error) throw error
 
       setLastSyncedAt(now)
-    } catch (error) {
-      console.error("Error saving changes:", error)
+    } catch (err) {
+      console.error("Error in debounced save:", err)
       setError("Failed to save changes")
     } finally {
       setIsSyncing(false)
     }
   }
 
-  // Debounced save function
+  // Debounced save effect (simplified dependencies)
   useEffect(() => {
     // Only save if we have a boardId and it's not a demo board
     if (!boardId || boardId.startsWith("demo-")) return
 
     const timer = setTimeout(() => {
-      saveChanges()
-    }, 1000) // 1 second debounce
+      // Check isSyncing again *before* saving
+      if (!isSyncing) {
+         saveChanges()
+      } else {
+         console.log("Debounced save skipped: Sync already in progress.");
+      }
+    }, 1500) // Slightly longer debounce
 
     return () => clearTimeout(timer)
-  }, [notes, boardId])
+  }, [notes, boardId, saveChanges, isSyncing])
 
-  return { isSyncing, error }
+  // Return only the error state, as sync state is internal
+  return { error }
 }
 
