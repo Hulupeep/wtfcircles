@@ -18,28 +18,8 @@ import { useRouter } from "next/navigation"
 
 // Import supabase client
 import { supabase } from "@/lib/supabase"
-
-// Types
-type Zone = "wwtf" | "wtf" | "clarity"
-interface Action {
-  id: string
-  text: string
-  completed: boolean
-}
-interface Note {
-  id: string
-  text: string
-  zone: Zone
-  nextActions: Action[]
-}
-
-interface Board {
-  id: string
-  title: string
-  isShared?: boolean
-  ownerId?: string
-  user_id?: string
-}
+import { Note, Board, Zone, Action } from "@/lib/types"
+import { FiveWhysData } from "@/lib/prompt-utils"
 
 export default function Home() {
   const { toast } = useToast()
@@ -346,7 +326,9 @@ export default function Home() {
   }
 
   const handleNoteDoubleClick = (noteId: string) => {
+    console.log("handleNoteDoubleClick called with noteId:", noteId)
     setEditingNoteId(noteId)
+    console.log("editingNoteId set to:", noteId)
   }
 
   const handleCloseModal = () => {
@@ -425,6 +407,53 @@ export default function Home() {
           variant: "destructive",
         })
       }
+    }
+  }
+
+  const handleSaveFiveWhys = async (noteId: string, fiveWhysData: FiveWhysData) => {
+    // Update local state
+    const updatedNotes = notes.map((note) =>
+      note.id === noteId
+        ? {
+            ...note,
+            fiveWhys: fiveWhysData,
+          }
+        : note,
+    )
+
+    setNotes(updatedNotes)
+
+    // If we have an active board and we're not in demo mode, update in database
+    if (activeBoardId && userId) {
+      try {
+        const { error } = await supabase
+          .from("boards")
+          .update({
+            content: updatedNotes,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", activeBoardId)
+
+        if (error) throw error
+
+        toast({
+          title: "Saved",
+          description: "5 Whys responses saved successfully",
+        })
+      } catch (error) {
+        console.error("Error saving 5 Whys:", error)
+        toast({
+          title: "Error",
+          description: "Failed to save 5 Whys responses",
+          variant: "destructive",
+        })
+      }
+    } else {
+      // In demo mode, just show success message
+      toast({
+        title: "Saved",
+        description: "5 Whys responses saved (demo mode)",
+      })
     }
   }
 
@@ -634,6 +663,7 @@ export default function Home() {
                 <Plus className="h-4 w-4 mr-2" />
                 Add
               </Button>
+
             </div>
           </div>
         </div>
@@ -722,6 +752,7 @@ export default function Home() {
           onClose={handleCloseModal}
           onAddAction={handleAddAction}
           onToggleAction={handleToggleAction}
+          onSaveFiveWhys={handleSaveFiveWhys}
         />
       )}
 
