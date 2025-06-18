@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { CircleZone } from "@/components/circle-zone"
 import { StickyNote } from "@/components/sticky-note"
 import { NextActionsDialog } from "@/components/next-actions-dialog"
@@ -37,10 +37,92 @@ export default function Home() {
   const [userId, setUserId] = useState<string | null>(null)
 
   // Set up real-time sync
-  const { isSyncing, error: syncError } = useRealtimeSync(activeBoardId || "", notes, setNotes)
+  const { error: syncError } = useRealtimeSync(activeBoardId || "", notes, setNotes)
 
   // Combine all boards for the dropdown
   const allBoards = [...myBoards, ...sharedBoards]
+
+  // Add a function to set up demo data
+  const setupDemoMode = useCallback(() => {
+    setMyBoards([
+      { id: "demo-board-1", title: "Demo Board 1" },
+      { id: "demo-board-2", title: "Demo Board 2" },
+    ])
+    setActiveBoardId("demo-board-1")
+
+    // Add some sample notes
+    setNotes([
+      {
+        id: "demo-note-1",
+        text: "This is a demo note",
+        zone: "wtf",
+        nextActions: [],
+      },
+      {
+        id: "demo-note-2",
+        text: "Another demo note",
+        zone: "clarity",
+        nextActions: [],
+      },
+    ])
+    setIsGuest(true)
+    setIsLoading(false)
+  }, [])
+
+  // Fetch user's boards
+  const fetchUserBoards = useCallback(async (userId: string) => {
+    setIsLoading(true)
+
+    try {
+      // Fetch boards owned by the user
+      const { data: ownedBoards, error: ownedError } = await supabase
+        .from("boards")
+        .select("id, title, shared")
+        .eq("user_id", userId)
+
+      if (ownedError) throw ownedError
+
+      // Fetch boards shared with the user
+      const { data: sharedWithUser, error: sharedError } = await supabase
+        .from("shared_boards")
+        .select("board_id, boards(id, title, user_id)")
+        .eq("user_id", userId)
+
+      if (sharedError) throw sharedError
+
+      // Format the boards
+      const formattedOwnedBoards = ownedBoards.map((board) => ({
+        id: board.id,
+        title: board.title,
+        isShared: board.shared,
+      }))
+
+      const formattedSharedBoards = sharedWithUser.map((item: { board_id: string; boards: { id: string; title: string; user_id: string }[] }) => ({
+        id: item.boards[0]?.id || item.board_id,
+        title: item.boards[0]?.title || '',
+        isShared: true,
+        ownerId: item.boards[0]?.user_id || '',
+      }))
+
+      setMyBoards(formattedOwnedBoards)
+      setSharedBoards(formattedSharedBoards)
+
+      // Set the first board as active if no board is selected
+      if (!activeBoardId && formattedOwnedBoards.length > 0) {
+        setActiveBoardId(formattedOwnedBoards[0].id)
+      }
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error fetching boards:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch boards",
+        variant: "destructive",
+      })
+      setIsLoading(false)
+    }
+  }, [activeBoardId, toast])
 
   // Check if the user is authenticated and fetch their boards
   useEffect(() => {
@@ -78,108 +160,8 @@ export default function Home() {
     }
 
     checkAuth()
-  }, [])
+  }, [fetchUserBoards, setupDemoMode, toast])
 
-  // Fetch user's boards
-  const fetchUserBoards = async (userId: string) => {
-    setIsLoading(true)
-
-    try {
-      // Fetch boards owned by the user
-      const { data: ownedBoards, error: ownedError } = await supabase
-        .from("boards")
-        .select("id, title, shared")
-        .eq("user_id", userId)
-
-      if (ownedError) throw ownedError
-
-      // Fetch boards shared with the user
-      const { data: sharedWithUser, error: sharedError } = await supabase
-        .from("shared_boards")
-        .select("board_id, boards(id, title, user_id)")
-        .eq("user_id", userId)
-
-      if (sharedError) throw sharedError
-
-      // Format the boards
-      const formattedOwnedBoards = ownedBoards.map((board) => ({
-        id: board.id,
-        title: board.title,
-        isShared: board.shared,
-      }))
-
-      const formattedSharedBoards = sharedWithUser.map((item) => ({
-        id: item.boards.id,
-        title: item.boards.title,
-        isShared: true,
-        ownerId: item.boards.user_id,
-      }))
-
-      setMyBoards(formattedOwnedBoards)
-      setSharedBoards(formattedSharedBoards)
-
-      // Set the active board to the first board if there is one
-      if (formattedOwnedBoards.length > 0) {
-        setActiveBoardId(formattedOwnedBoards[0].id)
-        await fetchBoardData(formattedOwnedBoards[0].id)
-      } else if (formattedSharedBoards.length > 0) {
-        setActiveBoardId(formattedSharedBoards[0].id)
-        await fetchBoardData(formattedSharedBoards[0].id)
-      } else {
-        setIsLoading(false)
-      }
-    } catch (error) {
-      console.error("Error fetching boards:", error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch your boards",
-        variant: "destructive",
-      })
-      setIsLoading(false)
-    }
-  }
-
-  // Add a function to set up demo data
-  const setupDemoMode = () => {
-    setMyBoards([
-      { id: "demo-board-1", title: "Demo Board 1" },
-      { id: "demo-board-2", title: "Demo Board 2" },
-    ])
-    setActiveBoardId("demo-board-1")
-
-    // Add some sample notes
-    setNotes([
-      {
-        id: "note-1",
-        text: "Where's the code? Github",
-        zone: "wwtf",
-        nextActions: [],
-      },
-      {
-        id: "note-2",
-        text: "Access db to see prompts",
-        zone: "wwtf",
-        nextActions: [{ id: "action-1", text: "Set up database access", completed: false }],
-      },
-      {
-        id: "note-3",
-        text: "Are stories written?",
-        zone: "wtf",
-        nextActions: [],
-      },
-      {
-        id: "note-4",
-        text: "My roadmap - stories to be completed for MVP",
-        zone: "clarity",
-        nextActions: [
-          { id: "action-2", text: "Define MVP features", completed: true },
-          { id: "action-3", text: "Create timeline", completed: false },
-        ],
-      },
-    ])
-
-    setIsLoading(false)
-  }
 
   // Fetch board data
   const fetchBoardData = async (boardId: string) => {
@@ -256,7 +238,7 @@ export default function Home() {
     }
 
     checkSharedBoard()
-  }, [])
+  }, [toast])
 
   const handleAddNote = async () => {
     if (noteInput.trim() === "") return
@@ -540,8 +522,6 @@ export default function Home() {
 
   const currentEditingNote = notes.find((note) => note.id === editingNoteId) || null
   const activeBoard = allBoards.find((board) => board.id === activeBoardId)
-  const isSharedBoard = sharedBoards.some((board) => board.id === activeBoardId)
-  const canShareBoard = !isGuest && !isSharedBoard
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -552,7 +532,7 @@ export default function Home() {
             <div className="flex items-center gap-6">
               <div>
                 <h1 className="text-2xl font-bold">WTF Circles</h1>
-                <p className="text-sm text-muted-foreground">Clarity for when you're clueless</p>
+                <p className="text-sm text-muted-foreground">Clarity for when you&apos;re clueless</p>
               </div>
 
               {!isGuest && (

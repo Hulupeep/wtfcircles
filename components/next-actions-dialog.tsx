@@ -49,7 +49,7 @@ export function NextActionsDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-center">
-            Let's move this toward clarity.
+            Let&apos;s move this toward clarity.
           </DialogTitle>
         </DialogHeader>
 
@@ -62,7 +62,7 @@ export function NextActionsDialog({
           {/* Primary Action Section */}
           <div className="space-y-4">
             <Label className="text-base font-medium">
-              What's one thing you can do next?
+              What&apos;s one thing you can do next?
             </Label>
             
             <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Check, Copy, Loader2 } from "lucide-react"
 import {
   Dialog,
@@ -32,13 +32,7 @@ export function ShareBoardDialog({ open, onOpenChange, boardId }: ShareBoardDial
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/board/share/${boardId}` : ''
 
   // Fetch the current sharing status when the dialog opens
-  useEffect(() => {
-    if (open && boardId) {
-      fetchSharingStatus()
-    }
-  }, [open, boardId])
-
-  const fetchSharingStatus = async () => {
+  const fetchSharingStatus = useCallback(async () => {
     if (!boardId) return
 
     setIsLoading(true)
@@ -59,7 +53,13 @@ export function ShareBoardDialog({ open, onOpenChange, boardId }: ShareBoardDial
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [boardId, toast])
+
+  useEffect(() => {
+    if (open && boardId) {
+      fetchSharingStatus()
+    }
+  }, [open, boardId, fetchSharingStatus])
 
   const copyToClipboard = async () => {
     try {
@@ -71,7 +71,7 @@ export function ShareBoardDialog({ open, onOpenChange, boardId }: ShareBoardDial
       })
 
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Please copy the link manually",
