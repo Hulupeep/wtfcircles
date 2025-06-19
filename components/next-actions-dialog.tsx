@@ -49,7 +49,7 @@ export function NextActionsDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-center">
-            Let&apos;s move this toward clarity.
+            Let's move this toward clarity.
           </DialogTitle>
         </DialogHeader>
 
@@ -62,7 +62,7 @@ export function NextActionsDialog({
           {/* Primary Action Section */}
           <div className="space-y-4">
             <Label className="text-base font-medium">
-              What&apos;s one thing you can do next?
+              What's one thing you can do next to move this forward?
             </Label>
             
             <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function NextActionsDialog({
                 value={newActionText}
                 onChange={(e) => setNewActionText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddAction()}
-                placeholder="Add action..."
+                placeholder="Add a next step..."
                 className="flex-1"
               />
               <Button 

@@ -1,21 +1,27 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Settings } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+
 import { Note } from "@/lib/types"
-import { Button } from "@/components/ui/button"
 
 interface StickyNoteProps {
   note: Note
   onDoubleClick: (noteId: string) => void
+  isHighlighted: boolean
+  clearHighlight: () => void
 }
 
-export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
+export function StickyNote({ note, onDoubleClick, isHighlighted, clearHighlight }: StickyNoteProps) {
+  // console.log(`[StickyNote] Rendering note ID: ${note.id}, Zone: ${note.zone}`); // Removed log
   const [isDragging, setIsDragging] = useState(false)
+  const [showClickMePrompt, setShowClickMePrompt] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const promptTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData("noteId", note.id)
@@ -26,10 +32,48 @@ export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
     setIsDragging(false)
   }
 
-  const handleSettingsClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    onDoubleClick(note.id)
+  // Effect for handling the highlight and prompt
+  useEffect(() => {
+    // Clear previous timeouts if props change
+    if (promptTimeoutRef.current) clearTimeout(promptTimeoutRef.current)
+    if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current)
+
+    if (isHighlighted) {
+      setShowClickMePrompt(true)
+      setIsAnimating(true)
+
+      // Remove animation after 2.5 seconds
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+      }, 2500)
+
+      // Hide prompt and clear highlight state after 10 seconds
+      promptTimeoutRef.current = setTimeout(() => {
+        setShowClickMePrompt(false)
+        clearHighlight() // Clear the highlight state in the parent
+      }, 10000)
+    } else {
+      // Ensure prompt is hidden if not highlighted
+      setShowClickMePrompt(false)
+      setIsAnimating(false)
+    }
+
+    // Cleanup function to clear timeouts on unmount or re-render
+    return () => {
+      if (promptTimeoutRef.current) clearTimeout(promptTimeoutRef.current)
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current)
+    }
+  }, [isHighlighted, clearHighlight])
+
+  const handleClick = () => {
+    if (showClickMePrompt) {
+      setShowClickMePrompt(false)
+      clearHighlight()
+      if (promptTimeoutRef.current) clearTimeout(promptTimeoutRef.current)
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current)
+      setIsAnimating(false) // Stop animation immediately on click
+    }
+    // Note: Double click is handled by onDoubleClick prop
   }
 
   const getZoneColor = () => {
@@ -45,39 +89,36 @@ export function StickyNote({ note, onDoubleClick }: StickyNoteProps) {
     }
   }
 
-
-
   return (
-    <Card
-      className={cn(
-        "w-full max-w-[200px] cursor-move shadow-sm transition-all",
-        getZoneColor(),
-        isDragging && "opacity-50",
-        note.nextActions.length > 0 && "ring-1 ring-primary",
-      )}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <CardContent className="p-3 text-sm">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-1 flex-1">
-            {note.nextActions.length > 0 && <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
-            <p className="text-gray-800 leading-relaxed">{note.text}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 shrink-0"
-            onClick={handleSettingsClick}
+    <TooltipProvider delayDuration={100}>
+      <Tooltip open={showClickMePrompt}>
+        <TooltipTrigger asChild>
+          <Card
+            className={cn(
+              "w-full max-w-[200px] cursor-move shadow-sm transition-all relative", // Added relative positioning
+              getZoneColor(),
+              isDragging && "opacity-50",
+              note.nextActions.length > 0 && "ring-1 ring-primary",
+              isAnimating && "animate-bounce-short", // Apply animation class
+            )}
+            draggable
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDoubleClick={() => onDoubleClick(note.id)}
+            onClick={handleClick} // Handle click to dismiss prompt
           >
-            <Settings className="h-3 w-3" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <CardContent className="p-3 text-sm">
+              <div className="flex items-start gap-1">
+                {note.nextActions.length > 0 && <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
+                <p>{note.text}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="center">
+          <p>Click me! Click me!</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
-
-export default StickyNote
-
